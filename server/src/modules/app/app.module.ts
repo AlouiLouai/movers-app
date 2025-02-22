@@ -3,9 +3,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import appConfig from 'src/config/app.config';
-import databaseConfig from 'src/config/database.config';
 import { LoggerModule } from '../logger/winston.module';
+import { appConfig, databaseConfig } from 'src/config';
 
 @Module({
   imports: [
