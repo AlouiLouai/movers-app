@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import appConfig from 'src/config/app.config';
 import databaseConfig from 'src/config/database.config';
+import { LoggerModule } from '../logger/winston.module';
 
 @Module({
   imports: [
@@ -14,6 +15,9 @@ import databaseConfig from 'src/config/database.config';
       isGlobal: true, // Make config available globally
       envFilePath: `.env.${process.env.NODE_ENV || 'development'}`, // Dynamically load the appropriate .env file
     }),
+
+    // LoggerModule for Winston logging
+    LoggerModule,
 
     // Configure TypeORM using ConfigService
     TypeOrmModule.forRootAsync({
