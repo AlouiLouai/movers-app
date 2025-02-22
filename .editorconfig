@@ -1,0 +1,4 @@
+# .editorconfig file to enforce LF line endings
+
+[*]
+end_of_line = lf
