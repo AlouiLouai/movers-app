@@ -3,13 +3,16 @@ import { Profile, Strategy, VerifyCallback } from 'passport-google-oauth20';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
+import { AuthService } from './auth.service';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
-  constructor(configService: ConfigService) {
+  constructor(
+    configService: ConfigService,
+    private readonly authService: AuthService,
+  ) {
     const { clientID, clientSecret, callbackURL } =
       getGoogleConfig(configService);
-
     super({
       clientID,
       clientSecret,
@@ -19,16 +22,20 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     });
   }
 
-  validate(
+  async validate(
     req: Request,
     accessToken: string,
     refreshToken: string,
     profile: Profile,
     done: VerifyCallback,
-  ): void {
+  ): Promise<void> {
     try {
-      const user = this.extractUser(profile);
-      done(null, user);
+      // Extract user data from Google profile
+      const googleProfile = this.extractUser(profile);
+
+      // Find or create the user in the database
+      const user = await this.authService.findOrCreateGoogleUser(googleProfile);
+      done(null, user); // Return the user
     } catch (error) {
       done(error, undefined);
     }
@@ -45,7 +52,6 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   }
 }
 
-// ✅ Utility function for strict validation
 export const getGoogleConfig = (configService: ConfigService) => {
   const clientID = configService.get<string>('google.clientID');
   const clientSecret = configService.get<string>('google.clientSecret');

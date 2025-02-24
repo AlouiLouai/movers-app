@@ -18,9 +18,9 @@ export class AuthController {
   // Handles the redirect after Google authentication
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
-  googleAuthRedirect(@Request() req: ExpressRequest) {
+  async googleAuthRedirect(@Request() req: ExpressRequest) {
     // `req.user` will contain the user's Google profile after successful authentication
-    const user = this.authService.findOrCreateGoogleUser(req.user);
+    const user = await this.authService.findOrCreateGoogleUser(req.user);
 
     // Return a response to the client with the user info
     return {
