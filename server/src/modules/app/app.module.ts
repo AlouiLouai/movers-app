@@ -3,14 +3,15 @@ import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { LoggerModule } from '../logger/winston.module';
-import { appConfig, databaseConfig } from 'src/config';
+import { appConfig, databaseConfig, googleConfig } from 'src/config';
 import { DatabaseModule } from '../database/database.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
     // Load environment variables from .env files
     ConfigModule.forRoot({
-      load: [appConfig, databaseConfig], // Load app and database configuration
+      load: [appConfig, databaseConfig, googleConfig], // Load app and database configuration
       isGlobal: true, // Make config available globally
       envFilePath: `.env.${process.env.NODE_ENV || 'development'}`, // Dynamically load the appropriate .env file
     }),
@@ -18,6 +19,8 @@ import { DatabaseModule } from '../database/database.module';
     LoggerModule,
     // Configure TypeORM using ConfigService
     DatabaseModule,
+    // The Google Auth20 module
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
