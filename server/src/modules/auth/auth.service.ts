@@ -68,4 +68,8 @@ export class AuthService {
       throw error;
     }
   }
+
+  async findUserByGoogleId(googleId: string): Promise<User | null> {
+    return this.userRepository.findOne({ where: { googleId } });
+  }
 }
