@@ -17,7 +17,6 @@ async function bootstrap() {
   const winstonLogger = app.get<LoggerService>(WINSTON_MODULE_NEST_PROVIDER);
 
   // Configure the app with the logger
-  app.setGlobalPrefix('api');
   app.useLogger(winstonLogger); // Set Winston as the app-wide logger
 
   const configService = app.get(ConfigService);
