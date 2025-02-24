@@ -1,36 +1,67 @@
-import { Controller, Get, Request, UseGuards } from '@nestjs/common';
+import { Controller, Get, Request, UseGuards, Inject } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
-import { Request as ExpressRequest } from 'express'; // Import Express Request
+import { Request as ExpressRequest } from 'express';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
+import { Logger } from 'winston';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+
+    @Inject(WINSTON_MODULE_PROVIDER)
+    private readonly logger: Logger,
+  ) {}
 
   // Initiates the Google OAuth flow
   @Get('google')
   @UseGuards(AuthGuard('google'))
   googleAuth() {
-    // Google OAuth flow will redirect to the callback URL
-    // No additional logic is needed here because @UseGuards does all the heavy lifting.
+    this.logger.debug('Google OAuth login initiated');
+    // No additional logic needed as @UseGuards handles redirection
   }
 
   // Handles the redirect after Google authentication
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   async googleAuthRedirect(@Request() req: ExpressRequest) {
-    // `req.user` will contain the user's Google profile after successful authentication
-    const user = await this.authService.findOrCreateGoogleUser(req.user);
+    try {
+      this.logger.debug('Google OAuth callback received');
 
-    // Return a response to the client with the user info
-    return {
-      message: 'Login successful',
-      user: {
-        googleId: user.googleId,
-        email: user.email,
-        name: user.name,
-        avatar: user.avatar,
-      },
-    };
+      if (!req.user) {
+        this.logger.warn('Google OAuth callback called, but no user found');
+        throw new Error('Google authentication failed');
+      }
+
+      this.logger.info(`Authenticating Google user: ${req.user?.email}`);
+
+      // Process user authentication
+      const user = await this.authService.findOrCreateGoogleUser(req.user);
+
+      this.logger.info(`User authenticated: ${user.email}`);
+
+      return {
+        message: 'Login successful',
+        user: {
+          googleId: user.googleId,
+          email: user.email,
+          name: user.name,
+          avatar: user.avatar,
+        },
+      };
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        this.logger.error(`Error in googleAuthRedirect: ${error.message}`, {
+          stack: error.stack,
+        });
+      } else {
+        this.logger.error('Unexpected error in googleAuthRedirect', {
+          rawError: String(error),
+        });
+      }
+
+      throw error;
+    }
   }
 }

@@ -1,22 +1,21 @@
 import { PassportStrategy } from '@nestjs/passport';
 import { Profile, Strategy, VerifyCallback } from 'passport-google-oauth20';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
 import { AuthService } from './auth.service';
-
-interface GoogleProfile {
-  googleId: string;
-  email: string;
-  name: string;
-  avatar?: string;
-}
+import { GoogleProfile } from 'src/common/interfaces/GoogleProfile';
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
+import { Logger } from 'winston';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
+  private readonly logger: Logger;
+
   constructor(
     configService: ConfigService,
     private readonly authService: AuthService,
+    @Inject(WINSTON_MODULE_PROVIDER) logger: Logger,
   ) {
     const { clientID, clientSecret, callbackURL } =
       getGoogleConfig(configService);
@@ -27,6 +26,8 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       scope: ['email', 'profile'],
       passReqToCallback: true,
     });
+
+    this.logger = logger;
   }
 
   async validate(
@@ -37,20 +38,30 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     done: VerifyCallback,
   ): Promise<void> {
     try {
+      this.logger.debug(
+        `Google OAuth Login Attempt: ${profile.emails?.[0]?.value}`,
+      );
+
       // Extract user data from Google profile
       const googleProfile = this.extractUser(profile);
 
       // Find or create the user in the database
       const user = await this.authService.findOrCreateGoogleUser(googleProfile);
+
+      this.logger.info(`Google OAuth Success for: ${user.email}`);
+
       done(null, user); // Return the user
     } catch (error: unknown) {
+      this.logger.error('Google OAuth validation failed', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+
       // Handle unknown error type
-      if (error instanceof Error) {
-        throw new UnauthorizedException(
-          `Google OAuth validation failed: ${error.message}`,
-        );
-      }
-      throw new UnauthorizedException('Google OAuth validation failed');
+      throw new UnauthorizedException(
+        error instanceof Error
+          ? `Google OAuth validation failed: ${error.message}`
+          : 'Google OAuth validation failed',
+      );
     }
   }
 
