@@ -7,6 +7,7 @@ import { AuthService } from './auth.service';
 import { GoogleProfile } from 'src/common/interfaces/GoogleProfile';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
+import { getGoogleConfig } from 'src/utils/googleConfig';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
@@ -48,7 +49,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       // Find or create the user in the database
       const user = await this.authService.findOrCreateGoogleUser(googleProfile);
 
-      this.logger.info(`Google OAuth Success for: ${user.email}`);
+      this.logger.info(`Google OAuth Success for: ${user.user.email}`);
 
       done(null, user); // Return the user
     } catch (error: unknown) {
@@ -75,15 +76,3 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     };
   }
 }
-
-export const getGoogleConfig = (configService: ConfigService) => {
-  const clientID = configService.get<string>('google.clientID');
-  const clientSecret = configService.get<string>('google.clientSecret');
-  const callbackURL = configService.get<string>('google.callbackUrl');
-
-  if (!clientID || !clientSecret || !callbackURL) {
-    throw new Error('Missing required Google OAuth environment variables');
-  }
-
-  return { clientID, clientSecret, callbackURL };
-};

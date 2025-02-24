@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { GoogleProfile } from 'src/common/interfaces/GoogleProfile';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
@@ -14,9 +15,13 @@ export class AuthService {
 
     @Inject(WINSTON_MODULE_PROVIDER)
     private readonly logger: Logger,
+
+    private readonly jwtService: JwtService,
   ) {}
 
-  async findOrCreateGoogleUser(googleProfile: GoogleProfile): Promise<User> {
+  async findOrCreateGoogleUser(
+    googleProfile: GoogleProfile,
+  ): Promise<{ user: User; token: string }> {
     try {
       this.logger.debug(`Looking for Google user: ${googleProfile.email}`);
 
@@ -33,13 +38,22 @@ export class AuthService {
           name: googleProfile.name,
           avatar: googleProfile.avatar,
         });
-        await this.userRepository.save(user);
-        this.logger.info(`User successfully created: ${user.email}`);
-      } else {
-        this.logger.debug(`User already exists: ${user.email}`);
       }
 
-      return user;
+      // Generate JWT token
+      const token = this.jwtService.sign({
+        userId: user.id,
+        googleId: user.googleId,
+        email: user.email,
+      });
+
+      // Save token to the database
+      user.token = token;
+      await this.userRepository.save(user);
+
+      this.logger.info(`User successfully created: ${user.email}`);
+
+      return { user, token };
     } catch (error: unknown) {
       if (error instanceof Error) {
         this.logger.error(`Error in findOrCreateGoogleUser: ${error.message}`, {

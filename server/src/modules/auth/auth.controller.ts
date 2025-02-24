@@ -37,7 +37,9 @@ export class AuthController {
       this.logger.info(`Authenticating Google user: ${req.user?.email}`);
 
       // Process user authentication
-      const user = await this.authService.findOrCreateGoogleUser(req.user);
+      const { user, token } = await this.authService.findOrCreateGoogleUser(
+        req.user,
+      );
 
       this.logger.info(`User authenticated: ${user.email}`);
 
@@ -48,6 +50,7 @@ export class AuthController {
           email: user.email,
           name: user.name,
           avatar: user.avatar,
+          token,
         },
       };
     } catch (error: unknown) {

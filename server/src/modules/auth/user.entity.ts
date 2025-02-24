@@ -27,4 +27,7 @@ export class User {
     onUpdate: 'CURRENT_TIMESTAMP',
   })
   updatedAt: Date;
+
+  @Column({ nullable: true })
+  token: string; // Store JWT token
 }
