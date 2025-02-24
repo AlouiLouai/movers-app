@@ -1,9 +1,16 @@
 import { PassportStrategy } from '@nestjs/passport';
 import { Profile, Strategy, VerifyCallback } from 'passport-google-oauth20';
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
 import { AuthService } from './auth.service';
+
+interface GoogleProfile {
+  googleId: string;
+  email: string;
+  name: string;
+  avatar?: string;
+}
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
@@ -36,12 +43,18 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       // Find or create the user in the database
       const user = await this.authService.findOrCreateGoogleUser(googleProfile);
       done(null, user); // Return the user
-    } catch (error) {
-      done(error, undefined);
+    } catch (error: unknown) {
+      // Handle unknown error type
+      if (error instanceof Error) {
+        throw new UnauthorizedException(
+          `Google OAuth validation failed: ${error.message}`,
+        );
+      }
+      throw new UnauthorizedException('Google OAuth validation failed');
     }
   }
 
-  private extractUser(profile: Profile) {
+  private extractUser(profile: Profile): GoogleProfile {
     const { id, displayName, emails, photos } = profile;
     return {
       googleId: id,
