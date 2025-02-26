@@ -33,15 +33,13 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       passReqToCallback: false,
     };
 
-    console.log('JWT Strategy Options: ', options);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     super(options);
   }
 
   async validate(payload: JwtPayload): Promise<any> {
     const user = await this.authService.findUserByGoogleId(payload.googleId);
     if (!user) {
-      throw new UnauthorizedException('Invalid token');
+      throw new UnauthorizedException('Invalid token: User not found');
     }
     return user;
   }

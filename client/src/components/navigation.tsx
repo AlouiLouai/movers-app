@@ -3,29 +3,10 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { MoveIcon as LocalMoving } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useAuth } from "@/lib/context/authContext";
 
 export function Navigation() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userEmail, setUserEmail] = useState<string | null>(null);
-
-  useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    const email = localStorage.getItem("userEmail");
-    setIsLoggedIn(!!token);
-    setUserEmail(email);
-  }, []);
-
-  const handleGoogleLogin = () => {
-    window.location.href = "http://localhost:5000/auth/google";
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("userEmail");
-    setIsLoggedIn(false);
-    setUserEmail(null);
-  };
+  const { isLoggedIn, userEmail, login, logout } = useAuth();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -39,12 +20,12 @@ export function Navigation() {
           {isLoggedIn ? (
             <>
               <span>{userEmail}</span>
-              <Button variant="outline" onClick={handleLogout}>
+              <Button variant="outline" onClick={logout}>
                 Logout
               </Button>
             </>
           ) : (
-            <Button variant="outline" onClick={handleGoogleLogin}>
+            <Button variant="outline" onClick={login}>
               Sign in with Google
             </Button>
           )}

@@ -5,12 +5,15 @@ import {
   UseGuards,
   Inject,
   Res,
+  UnauthorizedException,
+  Post,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { Request as ExpressRequest, Response } from 'express';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
+import { RequestWithCookies } from 'src/common/interfaces/CookiesType';
 
 @Controller('auth')
 export class AuthController {
@@ -53,9 +56,16 @@ export class AuthController {
 
       this.logger.info(`User authenticated: ${user.email}`);
 
-      // Redirect to Next.js frontend with token and email
-      const frontendUrl = `http://localhost:3000/auth/callback?token=${token}&email=${encodeURIComponent(user.email)}`;
-      res.redirect(frontendUrl);
+      // Set token as an HTTP-only cookie
+      res.cookie('authToken', token, {
+        httpOnly: true, // Prevents JavaScript access
+        secure: false, // Set to true in production with HTTPS
+        sameSite: 'none', // Prevents CSRF
+        maxAge: 24 * 60 * 60 * 1000, // 1 day expiration
+      });
+
+      // Redirect directly to dashboard
+      res.redirect('http://localhost:3000/dashboard');
     } catch (error: unknown) {
       if (error instanceof Error) {
         this.logger.error(`Error in googleAuthRedirect: ${error.message}`, {
@@ -65,10 +75,25 @@ export class AuthController {
         this.logger.error('Unexpected error in googleAuthRedirect', {
           rawError: String(error),
         });
-        res.redirect('http://localhost:3000/login?error=auth_failed');
       }
 
       throw error;
     }
+  }
+
+  @Get('verify')
+  async verifyToken(@Request() req: RequestWithCookies) {
+    const token = req.cookies?.authToken;
+    if (!token) {
+      throw new UnauthorizedException('No token provided');
+    }
+    const user = await this.authService.verifyToken(token);
+    return { email: user.email };
+  }
+
+  @Post('logout')
+  logout(@Res() res: Response) {
+    res.clearCookie('authToken');
+    res.status(200).json({ message: 'Logged out' });
   }
 }

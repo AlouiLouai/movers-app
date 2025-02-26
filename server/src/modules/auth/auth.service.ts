@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './user.entity';
 import { Repository } from 'typeorm';
@@ -6,6 +6,7 @@ import { GoogleProfile } from 'src/common/interfaces/GoogleProfile';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { JwtService } from '@nestjs/jwt';
+import { JwtPayload } from 'src/common/interfaces/Jwt';
 
 @Injectable()
 export class AuthService {
@@ -19,12 +20,14 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
+  // Function to find or create a Google user and return a JWT token
   async findOrCreateGoogleUser(
     googleProfile: GoogleProfile,
   ): Promise<{ user: User; token: string }> {
     try {
       this.logger.debug(`Looking for Google user: ${googleProfile.email}`);
 
+      // Look for user by Google ID
       let user = await this.userRepository.findOne({
         where: { googleId: googleProfile.googleId },
       });
@@ -32,44 +35,70 @@ export class AuthService {
       if (!user) {
         this.logger.info(`Creating new Google user: ${googleProfile.email}`);
 
+        // If user doesn't exist, create a new one
         user = this.userRepository.create({
           googleId: googleProfile.googleId,
           email: googleProfile.email,
           name: googleProfile.name,
           avatar: googleProfile.avatar,
         });
+
+        // Save the new user to the database
+        await this.userRepository.save(user);
       }
 
-      // Generate JWT token
+      this.logger.info('User found or created:', user.email);
+
+      // Generate a JWT token
       const token = this.jwtService.sign({
         userId: user.id,
         googleId: user.googleId,
         email: user.email,
       });
 
-      // Save token to the database
-      user.token = token;
-      await this.userRepository.save(user);
+      this.logger.info(`JWT token generated for: ${user.email}`);
 
-      this.logger.info(`User successfully created: ${user.email}`);
-
+      // Return user and token
       return { user, token };
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        this.logger.error(`Error in findOrCreateGoogleUser: ${error.message}`, {
-          stack: error.stack,
-        });
-      } else {
-        this.logger.error('Unexpected error in findOrCreateGoogleUser', {
-          rawError: String(error),
-        });
-      }
-
+      // Enhanced error handling
+      this.logger.error(
+        `Error in findOrCreateGoogleUser: ${error instanceof Error ? error.message : String(error)}`,
+        {
+          stack: error instanceof Error ? error.stack : '',
+        },
+      );
       throw error;
     }
   }
 
+  // Function to find a user by their Google ID
   async findUserByGoogleId(googleId: string): Promise<User | null> {
-    return this.userRepository.findOne({ where: { googleId } });
+    try {
+      return await this.userRepository.findOne({ where: { googleId } });
+    } catch (error: unknown) {
+      this.logger.error(`Error finding user by Google ID: ${googleId}`, {
+        error: error instanceof Error ? error.message : String(error),
+      });
+      throw new UnauthorizedException('User not found');
+    }
+  }
+
+  // Function to verify a JWT token
+  async verifyToken(token: string): Promise<User> {
+    try {
+      const payload: JwtPayload = this.jwtService.verify(token);
+      const user = await this.userRepository.findOne({
+        where: { id: payload.userId },
+      });
+
+      if (!user) throw new Error('User not found');
+      return user;
+    } catch (error: any) {
+      this.logger.error(
+        `Token verification failed: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      throw new UnauthorizedException('Invalid token');
+    }
   }
 }
