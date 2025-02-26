@@ -13,6 +13,13 @@ async function bootstrap() {
   // Create the app without logger first
   const app = await NestFactory.create(AppModule);
 
+  // Enabling cors for the frontend
+  app.enableCors({
+    origin: 'http://localhost:3000',
+    methods: 'GET,POST',
+    allowedHeaders: 'Content-Type,Authorization',
+  });
+
   // Get the Winston logger as LoggerService for NestJS
   const winstonLogger = app.get<LoggerService>(WINSTON_MODULE_NEST_PROVIDER);
 
@@ -22,7 +29,7 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   // Use WINSTON_MODULE_PROVIDER for raw Winston Logger
   const logger = app.get<Logger>(WINSTON_MODULE_PROVIDER); // Correct token for Winston Logger
-  const port = configService.get<number>('app.port') || 3000;
+  const port = configService.get<number>('app.port') || 5000;
 
   logger.debug(`Attempting to start application on port ${port}`);
 

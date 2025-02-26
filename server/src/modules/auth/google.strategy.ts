@@ -20,6 +20,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   ) {
     const { clientID, clientSecret, callbackURL } =
       getGoogleConfig(configService);
+    console.log('Callback URL sent to Google:', callbackURL);
     super({
       clientID,
       clientSecret,
