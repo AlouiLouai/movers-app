@@ -47,17 +47,21 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       const googleProfile = this.extractUser(profile);
 
       // Find or create the user in the database
-      const user = await this.authService.findOrCreateGoogleUser(googleProfile);
+      const { user } =
+        await this.authService.findOrCreateGoogleUser(googleProfile);
 
-      this.logger.info(`Google OAuth Success for: ${user.user.email}`);
+      if (!user) {
+        throw new UnauthorizedException('User could not be created or found.');
+      }
 
-      done(null, user); // Return the user
+      this.logger.info(`Google OAuth Success for: ${user.email}`);
+
+      done(null, user); // Return the user to Passport
     } catch (error: unknown) {
       this.logger.error('Google OAuth validation failed', {
         error: error instanceof Error ? error.message : String(error),
       });
 
-      // Handle unknown error type
       throw new UnauthorizedException(
         error instanceof Error
           ? `Google OAuth validation failed: ${error.message}`
