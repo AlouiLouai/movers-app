@@ -25,10 +25,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    console.log(
-      "AuthProvider useEffect running for path:",
-      window.location.pathname
-    );
+    const pathname = window.location.pathname;
+    // Define public routes where auth check isn’t needed
+    const publicRoutes = ["/"];
+    if (publicRoutes.includes(pathname)) {
+      console.log("Skipping auth check on public route");
+      setIsLoading(false);
+      return;
+    }
+
     const fetchAuthStatus = async () => {
       try {
         const response = await fetch("/api/auth/check", {
@@ -42,19 +47,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         const data = await response.json();
+        console.log("Auth status received:", data);
         setIsLoggedIn(data.isLoggedIn);
         setUserEmail(data.email);
+
+        // Redirect to dashboard after login if redirect flag exists
+        if (data.isLoggedIn && getCookie("redirectAfterLogin")) {
+          setCookie("redirectAfterLogin", "", -1);
+          router.push("/dashboard");
+        }
       } catch (error) {
         console.error("Failed to fetch auth status:", error);
         setIsLoggedIn(false);
         setUserEmail(null);
       } finally {
+        console.log("Setting isLoading to false");
         setIsLoading(false);
       }
     };
 
     fetchAuthStatus();
-  }, [router]); // Runs on every route change
+  }, [router]);
 
   if (isLoading) return <div>Loading...</div>;
 
@@ -85,6 +98,16 @@ export function useAuth() {
   if (!context) throw new Error("useAuth must be used within an AuthProvider");
   return context;
 }
+
+// Cookie helpers (unchanged)
+const getCookie = (name: string) => {
+  const matches = document.cookie.match(
+    new RegExp(
+      "(?:^|; )" + name.replace(/([\.$?|{}()*\+\^])/g, "\\$1") + "=([^;]*)"
+    )
+  );
+  return matches ? decodeURIComponent(matches[1]) : undefined;
+};
 
 const setCookie = (name: string, value: string, days: number) => {
   const expires = new Date();
