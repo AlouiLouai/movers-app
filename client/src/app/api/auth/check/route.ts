@@ -2,8 +2,9 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
 export async function GET() {
-  const cookieStore = cookies();
-  const authToken = (await cookieStore).get("authToken")?.value; // No need for await
+  const cookieStore = await cookies();
+  const authToken = cookieStore.get("authToken")?.value; // No need for await
+  console.log("cookie :", authToken);
 
   if (!authToken) {
     return NextResponse.json(
@@ -15,8 +16,10 @@ export async function GET() {
   try {
     const response = await fetch("http://localhost:5000/auth/verify", {
       method: "GET",
-      headers: { Authorization: `Bearer ${authToken}` },
       credentials: "include",
+      headers: {
+        Cookie: `authToken=${authToken}`, // Ensure forwarding
+      },
     });
 
     if (!response.ok) {

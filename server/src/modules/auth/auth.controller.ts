@@ -60,8 +60,9 @@ export class AuthController {
       res.cookie('authToken', token, {
         httpOnly: true, // Prevents JavaScript access
         secure: false, // Set to true in production with HTTPS
-        sameSite: 'none', // Prevents CSRF
+        sameSite: 'lax', // Prevents CSRF
         maxAge: 24 * 60 * 60 * 1000, // 1 day expiration
+        domain: 'localhost',
       });
 
       // Redirect directly to dashboard

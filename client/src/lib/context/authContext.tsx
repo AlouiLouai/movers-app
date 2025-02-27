@@ -21,50 +21,45 @@ const AuthContext = createContext<AuthState | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    const currentPath = window.location.pathname;
-
-    // 🚀 Skip auth check if on the landing page
-    if (currentPath === "/") return;
-
+    console.log(
+      "AuthProvider useEffect running for path:",
+      window.location.pathname
+    );
     const fetchAuthStatus = async () => {
       try {
         const response = await fetch("/api/auth/check", {
           method: "GET",
-          credentials: "include", // Ensure cookies are sent
+          credentials: "include",
         });
 
-        if (!response.ok)
+        if (!response.ok) {
+          console.error("Auth check failed with status:", response.status);
           throw new Error(`Auth check failed: ${response.status}`);
+        }
 
         const data = await response.json();
         setIsLoggedIn(data.isLoggedIn);
         setUserEmail(data.email);
-
-        // Redirect to dashboard after login if flag exists in cookies
-        if (data.isLoggedIn) {
-          const redirectFlag = getCookie("redirectAfterLogin");
-          if (redirectFlag) {
-            // Clear the cookie after checking
-            setCookie("redirectAfterLogin", "", -1);
-            router.push("/dashboard");
-          }
-        }
       } catch (error) {
         console.error("Failed to fetch auth status:", error);
         setIsLoggedIn(false);
         setUserEmail(null);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchAuthStatus();
-  }, [router]);
+  }, [router]); // Runs on every route change
+
+  if (isLoading) return <div>Loading...</div>;
 
   const login = () => {
-    // 🚀 Set flag to redirect user after login in a cookie
-    setCookie("redirectAfterLogin", "true", 1); // 1 day expiration
+    setCookie("redirectAfterLogin", "true", 1);
     window.location.href = "http://localhost:5000/auth/google";
   };
 
@@ -73,7 +68,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       method: "POST",
       credentials: "include",
     });
-
     setIsLoggedIn(false);
     setUserEmail(null);
     router.push("/");
@@ -91,16 +85,6 @@ export function useAuth() {
   if (!context) throw new Error("useAuth must be used within an AuthProvider");
   return context;
 }
-
-// Helper functions to manage cookies
-const getCookie = (name: string) => {
-  const matches = document.cookie.match(
-    new RegExp(
-      "(?:^|; )" + name.replace(/([\.$?|{}()*\+\^])/g, "\\$1") + "=([^;]*)"
-    )
-  );
-  return matches ? decodeURIComponent(matches[1]) : undefined;
-};
 
 const setCookie = (name: string, value: string, days: number) => {
   const expires = new Date();
