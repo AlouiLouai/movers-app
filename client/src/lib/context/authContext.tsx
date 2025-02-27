@@ -16,6 +16,8 @@ interface AuthState {
   login: () => void;
   logout: () => void;
   fetchProfile: () => Promise<void>;
+  goToProfile: () => Promise<void>;
+  updateProfile: (data: { name?: string; avatar?: string }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthState | undefined>(undefined);
@@ -52,6 +54,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error("Error fetching profile:", error);
       setUserProfile(null); // Reset on error
+    }
+  };
+
+  const updateProfile = async (data: { name?: string; avatar?: string }) => {
+    try {
+      console.log("Updating profile with:", data);
+      const response = await fetch("http://localhost:5000/mover/profile", {
+        method: "PUT",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to update profile: ${response.status}`);
+      }
+
+      const updatedProfile = await response.json();
+      console.log("Updated profile received:", updatedProfile);
+      setUserProfile(updatedProfile); // Update state in real-time
+      setUserEmail(updatedProfile.email);
+    } catch (error) {
+      console.error("Error updating profile:", error);
     }
   };
 
@@ -122,6 +149,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push("/");
   };
 
+  // New async function to navigate to /profile
+  const goToProfile = async () => {
+    try {
+      console.log("Navigating to /profile");
+      router.push("/profile"); // No async operation here, but kept async for consistency
+    } catch (error) {
+      console.error("Error navigating to profile:", error);
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -131,6 +168,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         logout,
         fetchProfile,
+        goToProfile,
+        updateProfile,
       }}
     >
       {children}

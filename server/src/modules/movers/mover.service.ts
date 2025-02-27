@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
@@ -34,6 +34,24 @@ export class MoverService {
         { stack: error instanceof Error ? error.stack : '' },
       );
       throw error; // Let the controller handle the exception
+    }
+  }
+
+  async updateProfile(
+    token: string,
+    updateData: { name?: string; avatar?: string },
+  ): Promise<User> {
+    try {
+      this.logger.debug('Updating user profile');
+      const user = await this.authService.verifyToken(token);
+      if (updateData.name) user.name = updateData.name;
+      if (updateData.avatar) user.avatar = updateData.avatar;
+      await this.userRepository.save(user);
+      this.logger.info(`Profile updated for user: ${user.email}`);
+      return user;
+    } catch (error: any) {
+      this.logger.error(`Error updating profile: ${error}`);
+      throw new UnauthorizedException('Failed to update profile');
     }
   }
 }

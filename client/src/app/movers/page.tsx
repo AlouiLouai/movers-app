@@ -1,4 +1,4 @@
-import { MoverCard } from "../../components/mover-card";
+import { MoverCard } from "../../components/profile/mover-card";
 
 // This would be replaced with your actual API call
 const getMoversList = async () => {

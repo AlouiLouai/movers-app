@@ -5,6 +5,8 @@ import {
   Inject,
   UnauthorizedException,
   UseGuards,
+  Put,
+  Body,
 } from '@nestjs/common';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
@@ -39,5 +41,21 @@ export class MoverController {
       name: user.name,
       avatar: user.avatar,
     };
+  }
+
+  @Put('profile')
+  @UseGuards(JwtAuthGuard)
+  async updateProfile(
+    @Request() req: RequestWithCookies,
+    @Body() updateData: { name?: string; avatar?: string },
+  ) {
+    const token = req.cookies?.authToken;
+    if (!token) {
+      this.logger.warn('No auth token provided for profile update');
+      throw new UnauthorizedException('No token provided');
+    }
+    const user = await this.moverService.updateProfile(token, updateData);
+    this.logger.info(`Profile updated for user: ${user.email}`);
+    return { email: user.email, name: user.name, avatar: user.avatar };
   }
 }
