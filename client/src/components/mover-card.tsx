@@ -1,15 +1,14 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Star } from "lucide-react";
+//import { Star } from "lucide-react";
 
 interface MoverCardProps {
   mover: {
-    id: string;
     name: string;
     email: string;
-    avatar: string;
-    rating: number;
-    completedMoves: number;
+    avatar?: string | undefined;
+    // rating: number;
+    // completedMoves: number;
   };
 }
 
@@ -23,18 +22,18 @@ export function MoverCard({ mover }: MoverCardProps) {
         </Avatar>
         <div>
           <h3 className="text-lg font-semibold">{mover.name}</h3>
-          <div className="flex items-center gap-1">
+          {/* <div className="flex items-center gap-1">
             <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
             <span className="text-sm text-gray-500">
               {mover.rating.toFixed(1)}
             </span>
-          </div>
+          </div> */}
         </div>
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-gray-500">
+        {/* <p className="text-sm text-gray-500">
           {mover.completedMoves} moves completed
-        </p>
+        </p> */}
       </CardContent>
     </Card>
   );

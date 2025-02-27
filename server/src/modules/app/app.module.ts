@@ -6,6 +6,7 @@ import { LoggerModule } from '../logger/winston.module';
 import { appConfig, databaseConfig, googleConfig, jwtConfig } from 'src/config';
 import { DatabaseModule } from '../database/database.module';
 import { AuthModule } from '../auth/auth.module';
+import { MoverModule } from '../movers/mover.module';
 
 @Module({
   imports: [
@@ -21,6 +22,8 @@ import { AuthModule } from '../auth/auth.module';
     DatabaseModule,
     // The Google Auth20 module
     AuthModule,
+    // The Mover Module
+    MoverModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -3,11 +3,11 @@ import { Profile, Strategy, VerifyCallback } from 'passport-google-oauth20';
 import { Injectable, UnauthorizedException, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
-import { AuthService } from './auth.service';
 import { GoogleProfile } from 'src/common/interfaces/GoogleProfile';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { getGoogleConfig } from 'src/utils/googleConfig';
+import { AuthService } from '../auth.service';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {

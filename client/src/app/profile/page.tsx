@@ -1,19 +1,28 @@
-import { ProfileForm } from "../../components/profile-form";
+"use client";
 
-// This would be replaced with your actual API call
-const getProfile = async () => {
-  const res = await fetch("http://your-api/profile", { cache: "no-store" });
-  if (!res.ok) throw new Error("Failed to fetch profile");
-  return res.json();
-};
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/context/authContext";
+import { MoverCard } from "../../components/mover-card";
 
-export default async function ProfilePage() {
-  const profile = await getProfile();
+export default function ProfilePage() {
+  const { userProfile, fetchProfile } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!userProfile) {
+      fetchProfile().catch(() => router.push("/"));
+    }
+  }, [userProfile, fetchProfile, router]);
+
+  if (!userProfile) {
+    return <div className="container py-8">Loading profile...</div>;
+  }
 
   return (
     <div className="container py-8">
       <h1 className="text-3xl font-bold mb-8">Your Profile</h1>
-      <ProfileForm profile={profile} />
+      <MoverCard mover={userProfile} />
     </div>
   );
 }

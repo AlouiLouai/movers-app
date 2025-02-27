@@ -11,12 +11,18 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useRouter } from "next/navigation";
 
 export function AuthButton() {
-  const { isLoggedIn, userEmail, login, logout } = useAuth();
+  const { isLoggedIn, userProfile, login, logout } = useAuth();
+  const router = useRouter();
 
-  // Get first letter of email for avatar fallback
-  const userInitial = userEmail ? userEmail.charAt(0).toUpperCase() : "U";
+  // Use profile name or email for initial; fallback to "U"
+  const userInitial = userProfile?.name
+    ? userProfile.name.charAt(0).toUpperCase()
+    : userProfile?.email
+    ? userProfile.email.charAt(0).toUpperCase()
+    : "U";
 
   if (isLoggedIn) {
     return (
@@ -33,11 +39,13 @@ export function AuthButton() {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
           <div className="flex flex-col space-y-1 p-2">
-            <p className="text-sm font-medium">{userEmail}</p>
-            <p className="text-xs text-muted-foreground">Logged in</p>
+            <p className="text-sm font-medium">{userProfile?.name || "User"}</p>
+            <p className="text-xs text-muted-foreground">
+              {userProfile?.email || "Logged in"}
+            </p>
           </div>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>
+          <DropdownMenuItem onClick={() => router.push("/profile")}>
             <User className="mr-2 h-4 w-4" />
             <span>Profile</span>
           </DropdownMenuItem>
