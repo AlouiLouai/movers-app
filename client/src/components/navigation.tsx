@@ -46,7 +46,7 @@ export function Navigation() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2.5">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2.5 ml-8">
       <div className="container flex items-center justify-between">
         <div className="flex items-center gap-2 md:gap-4">
           {/* Mobile menu */}
@@ -67,7 +67,7 @@ export function Navigation() {
                   <Link href="/movers" className="text-lg">
                     Find Movers
                   </Link>
-                  <Link href="/services" className="text-lg">
+                  <Link href="/servicess" className="text-lg">
                     Services
                   </Link>
                   <Link href="/about" className="text-lg">
@@ -117,7 +117,7 @@ export function Navigation() {
           </Link>
 
           <Link
-            href="/services"
+            href="/servicess"
             className="hidden md:block px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 rounded-md hover:bg-gray-100"
           >
             Services
