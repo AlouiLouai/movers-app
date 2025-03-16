@@ -58,4 +58,9 @@ export class MoverController {
     this.logger.info(`Profile updated for user: ${user.email}`);
     return { email: user.email, name: user.name, avatar: user.avatar };
   }
+
+  @Get('movers')
+  async getMovers() {
+    return await this.moverService.getAllMovers();
+  }
 }

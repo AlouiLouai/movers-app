@@ -54,4 +54,18 @@ export class MoverService {
       throw new UnauthorizedException('Failed to update profile');
     }
   }
+
+  // Get All movers to be displayed to users
+  async getAllMovers(): Promise<User[]> {
+    try {
+      this.logger.debug('Fetching movers');
+      return await this.userRepository.find();
+    } catch (error) {
+      this.logger.error(
+        `Error fetching connected user profile: ${error instanceof Error ? error.message : String(error)}`,
+        { stack: error instanceof Error ? error.stack : '' },
+      );
+      throw error; // Let the controller handle the exception
+    }
+  }
 }
