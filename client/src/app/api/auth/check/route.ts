@@ -3,8 +3,7 @@ import { cookies } from "next/headers";
 
 export async function GET() {
   const cookieStore = await cookies();
-  const authToken = cookieStore.get("authToken")?.value; // No need for await
-  console.log("cookie :", authToken);
+  const authToken = cookieStore.get("authToken")?.value;
 
   if (!authToken) {
     return NextResponse.json(
@@ -18,7 +17,7 @@ export async function GET() {
       method: "GET",
       credentials: "include",
       headers: {
-        Cookie: `authToken=${authToken}`, // Ensure forwarding
+        Cookie: `authToken=${authToken}`,
       },
     });
 

@@ -91,44 +91,43 @@ export function Navigation() {
         </div>
 
         {/* Search bar */}
-        <form
-          onSubmit={handleSearch}
-          className="hidden md:flex flex-1 max-w-md mx-4"
-        >
-          <div className="relative flex w-full items-center">
-            <Input
-              type="search"
-              placeholder="Search for movers, services..."
-              className="pl-10 pr-4 py-2 rounded-full border border-gray-300 focus-visible:ring-blue-500"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <Search className="absolute left-3 h-4 w-4 text-muted-foreground" />
-          </div>
-        </form>
+        {!isLoggedIn && (
+          <form
+            onSubmit={handleSearch}
+            className="hidden md:flex flex-1 max-w-md mx-4"
+          >
+            <div className="relative flex w-full items-center">
+              <Input
+                type="search"
+                placeholder="Search for movers, services..."
+                className="pl-10 pr-4 py-2 rounded-full border border-gray-300 focus-visible:ring-blue-500"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <Search className="absolute left-3 h-4 w-4 text-muted-foreground" />
+            </div>
+          </form>
+        )}
 
         {/* Navigation links and auth */}
         <nav className="flex items-center gap-1 md:gap-4">
-          <Link
-            href="/movers"
-            className="hidden md:block px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 rounded-md hover:bg-gray-100"
-          >
-            Find Movers
-          </Link>
+          {!isLoggedIn && (
+            <>
+              <Link
+                href="/movers"
+                className="hidden md:block px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 rounded-md hover:bg-gray-100"
+              >
+                Find Movers
+              </Link>
 
-          <Link
-            href="/servicess"
-            className="hidden md:block px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 rounded-md hover:bg-gray-100"
-          >
-            Services
-          </Link>
-
-          {/* Mobile search button */}
-          <Button variant="ghost" size="icon" className="md:hidden">
-            <Search className="h-5 w-5" />
-            <span className="sr-only">Search</span>
-          </Button>
-
+              <Link
+                href="/servicess"
+                className="hidden md:block px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 rounded-md hover:bg-gray-100"
+              >
+                Services
+              </Link>
+            </>
+          )}
           {isLoggedIn ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

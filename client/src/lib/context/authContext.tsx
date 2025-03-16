@@ -87,7 +87,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Define public routes where auth check isn’t needed
     const publicRoutes = ["/"];
     if (publicRoutes.includes(pathname)) {
-      console.log("Skipping auth check on public route");
       setIsLoading(false);
       return;
     }
@@ -114,7 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           await fetchProfile(); // Set profile automatically after auth check
           if (getCookie("redirectAfterLogin")) {
             setCookie("redirectAfterLogin", "", -1);
-            router.push("/dashboard");
+            router.push("/profile");
           }
         }
       } catch (error) {
