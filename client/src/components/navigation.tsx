@@ -46,7 +46,7 @@ export function Navigation() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2.5">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2.5 ml-8">
       <div className="container flex items-center justify-between">
         <div className="flex items-center gap-2 md:gap-4">
           {/* Mobile menu */}
