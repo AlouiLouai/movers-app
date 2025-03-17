@@ -2,6 +2,7 @@ import { Mover } from "@/lib/interfaces/Mover";
 import { MoverCard } from "../../components/profile/mover-card";
 import { fetchMovers } from "@/services/movers/movers.service";
 import { Suspense } from "react";
+import { MoverCardDisplay } from "@/components/movers/mover-card";
 
 // Dummy data to supplement the API response
 const dummyMovers: Mover[] = [
@@ -86,7 +87,7 @@ export default async function MoversPage() {
         <Suspense fallback={<MoversSkeleton />}>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {movers.map((mover) => (
-              <MoverCard key={mover.id} mover={mover} />
+              <MoverCardDisplay key={mover.id} mover={mover} />
             ))}
           </div>
         </Suspense>
